@@ -16,7 +16,7 @@ install:
 	install -m 755 ./xctrl/xkbctrl.pl ${sharedir}/xkbctrl
 	install -m 644 ./xctrl/Keyboard.map ${sharedir}
 	install -m 644 ./remote.tgz ${sharedir}
-	ln -s /usr/bin/nxshell-proxy.sh ${bindir}/nxshell
+	ln -sf /usr/bin/nxshell-proxy.sh ${bindir}/nxshell
 
 clean:
 	${MAKE} -C ./xtest clean
