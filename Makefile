@@ -20,6 +20,7 @@ install:
 
 clean:
 	${MAKE} -C ./xtest clean
+	rm -f remote.tgz
 
 build:
 	./.doit -p --local

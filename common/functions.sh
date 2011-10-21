@@ -68,12 +68,8 @@ function getCookie {
 # addCookie...
 #-------------------------------------
 function addCookie {
-	xauth -q <<- EOF
-		add $HOSTNAME/unix:$display MIT-MAGIC-COOKIE-1 $COOKIE
-	EOF
-	xauth -q <<- EOF
-		add $HOSTNAME:$display MIT-MAGIC-COOKIE-1 $COOKIE
-	EOF
+	xauth add ${HOSTNAME}/unix:${display} MIT-MAGIC-COOKIE-1 ${COOKIE}
+	xauth add ${HOSTNAME}:${display} MIT-MAGIC-COOKIE-1 ${COOKIE}
 }
 #=====================================
 # newDisplay...
@@ -87,6 +83,7 @@ function newDisplay {
 	do
 		let display+=$inc
 	done
+	export display
 }
 #=====================================
 # initConnection...
