@@ -310,7 +310,7 @@ cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 log "waiting for agent [ sync: $netcatPort ]..."
 nc="netcat -w 30 -l -p $netcatPort"
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
-	$remote "echo "$COOKIE" | $nc;echo "$COOKIE" | $nc"
+	$remote "echo "$COOKIE" | $nc"
 
 #=====================================
 # run nxagent, wait for cookie
