@@ -289,7 +289,7 @@ mkdir -p $cdir && createSessionKey $cdir $remoteHost $thisUser
 #-------------------------------------
 rpmQC="rpm -q NX --qf %{VERSION}"
 locNX=`$rpmQC`
-remNX=`ssh -i $cdir/session.key $debug -p $sshport $remote $rpmQC`
+remNX=`ssh -x -i $cdir/session.key $debug -p $sshport $remote $rpmQC`
 if [ ! "$locNX" = "$remNX" ];then
 	log "NX versions differ: local: $locNX remote: $remNX... abort"
 	exit 1
@@ -301,14 +301,23 @@ fi
 log "Transfering remote code..."
 code=/usr/share/nxshell/remote.tgz
 arch=$cdir/remote.tgz
-cat $code | ssh -i $cdir/session.key $debug -p $sshport $remote \
+cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 	"mkdir -p $cdir && cat >$arch && tar -xzf $arch -C $cdir"
 
 #=====================================
-# Prepare cookie transfer...
+# run nxagent, wait for cookie
 #-------------------------------------
 log "waiting for agent [ sync: $netcatPort ]..."
 nc="netcat -w 30 -l -p $netcatPort"
+log "open ssh connection to $remote [ port: $tunnelPort ]"
+ssh -f -x -i $cdir/session.key $debug -p $sshport \
+	$remote $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
+	--command $command --nxdisplay $display --syncport $netcatPort \
+	--layout $layout
+
+#=====================================
+# transfer cookie...
+#-------------------------------------
 ssh -i $cdir/session.key $debug -p $sshport -f \
 	-L$netcatPort:localhost:$netcatPort \
 	$remote "echo "$COOKIE" | $nc;echo "$COOKIE" | $nc"
@@ -320,46 +329,13 @@ if [ -z "$ncpid" ];then
 fi
 
 #=====================================
-# Prepare calling the server proxy.
+# run the proxy.
 #-------------------------------------
-(
-	log "COOKIE transfer in progress..."
-	while true;do
-		kill -0 $ncpid >/dev/null 2>&1
-		if [ ! $? = 0 ];then
-			break
-		fi
-	done
-	log "starting nxproxy..."
-	count=0;
-	while true;do
-		nxproxy -S "127.0.0.1:$display"
-		if [ $? = 0 ] || [ $count = 3 ];then
-			break
-		fi
-		count=`expr $count + 1`
-	done
-) &
-PROXY=$!
-
-#=====================================
-# open ssh connection, run nxagent
-#-------------------------------------
-log "open ssh connection to $remote [ port: $tunnelPort ]"
-ssh -i $cdir/session.key $debug -p $sshport -X \
-	-L$tunnelPort:127.0.0.1:$tunnelPort \
-	$remote $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
-	--command $command --nxdisplay $display --syncport $netcatPort \
-	--layout $layout
+log "starting nxproxy..."
+nxproxy -S "$remoteHost:$display"
 
 #=====================================
 # cleanup session key
 #-------------------------------------
-cleanupSessionKey $cdir $remoteHost $thisUser
-
-#=====================================
-# clean sweep
-#-------------------------------------
-log "stopping service nxproxy [PID: $PROXY]"
-kill $PROXY >/dev/null 2>&1
-wait $PROXY >/dev/null 2>&1
+cleanupSessionKey \
+	$cdir $remoteHost $thisUser

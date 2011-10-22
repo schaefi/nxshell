@@ -140,7 +140,7 @@ esac
 #-------------------------------------
 NX_HOST_PORT_PARAMS="nx/nx,link=$link,pack=$pack"
 NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,nodelay=1,limit=0"
-NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,accept=127.0.0.1"
+NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS"
 NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,root=$HOME/.nxshell"
 
 #=====================================
@@ -149,7 +149,8 @@ NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,root=$HOME/.nxshell"
 count=0
 while true;do
 	COOKIE=`netcat localhost $netcatPort`
-	if [ ! -z $COOKIE ];then
+	if [ ! -z "$COOKIE" ];then
+		log "Adding cookie: $COOKIE"
 		addCookie
 		break
 	fi
@@ -167,7 +168,7 @@ done
 log "starting nxagent: init display [$display]"
 nxagent \
 	-once -persistent -display $NX_HOST_PORT_PARAMS:$display \
-	-class TrueColor -noreset -R \
+	-class TrueColor -noreset -geometry 800x600 -R \
 	-auth $HOME/.Xauthority -name "NX-Tunnel - $HOSTNAME" :$display \
 &
 AGENT=$!
@@ -184,10 +185,9 @@ while true;do
 done
 
 #=====================================
-# initiate nxproxy startup...
+# test connection...
 #-------------------------------------
 export DISPLAY=:$display
-netcat localhost $netcatPort >/dev/null
 while true;do
 	$cdir/nxshell/testX --fast 2>/dev/null
 	if [ $? = 0 ];then
@@ -200,26 +200,21 @@ done
 #=====================================
 # setup keyboard layout
 #-------------------------------------
-if [ -z "$layout" ] || [ "$layout" = "us" ];then
-	syskbd=/etc/sysconfig/keyboard
-	layout=`cat $syskbd | grep ^KEYTABLE | cut -f2 -d= | tr -d \"`
-	log "system keyboard is set to: $layout";
-fi
-if [ ! -z "$layout" ] && [ ! "$layout" = "us" ];then
-	xkb="$cdir/nxshell/xkbctrl $layout"
-	opt=`$xkb | grep Apply | cut -f2 -d: | tr -d \"`
-	opt=`echo $opt`
-	if [ ! -z "$opt" ];then
-		log "setup keyboard layout: $layout"
-		eval setxkbmap $opt
-		eval setxkbmap $opt
-	fi
-fi
-
-#=====================================
-# setup font path addons
-#-------------------------------------
-xset fp+ /opt/kde3/share/fonts
+#if [ -z "$layout" ] || [ "$layout" = "us" ];then
+#	syskbd=/etc/sysconfig/keyboard
+#	layout=`cat $syskbd | grep ^KEYTABLE | cut -f2 -d= | tr -d \"`
+#	log "system keyboard is set to: $layout";
+#fi
+#if [ ! -z "$layout" ] && [ ! "$layout" = "us" ];then
+#	xkb="$cdir/nxshell/xkbctrl $layout"
+#	opt=`$xkb | grep Apply | cut -f2 -d: | tr -d \"`
+#	opt=`echo $opt`
+#	if [ ! -z "$opt" ];then
+#		log "setup keyboard layout: $layout"
+#		eval setxkbmap $opt
+#		eval setxkbmap $opt
+#	fi
+#fi
 
 #=====================================
 # run the application
@@ -233,6 +228,7 @@ exitcode=$?
 #-------------------------------------
 log "stopping service nxagent [PID: $AGENT]"
 cleanup
+sleep 2
 kill $AGENT >/dev/null 2>&1
 wait $AGENT >/dev/null 2>&1
 exit $exitcode
