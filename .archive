@@ -11,7 +11,8 @@
 #===========================================
 # make tarball from the current source tree
 #-------------------------------------------
-rm -rf `find -type d | grep .svn`
+git log | ./.changelog | ./.filter > ../nxshell.changes
+find -type d | grep .git | xargs rm -rf
 rm -rf rpm/
 
 cd ..

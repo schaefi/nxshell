@@ -1,5 +1,5 @@
 # /.../
-# spec file for package nxshell (Version 1.3)
+# spec file for package nxshell (Version 1.4)
 #
 # Copyright (c) 2004 SUSE LINUX AG, Nuernberg, Germany.
 # This file and all modifications and additions to the pristine
@@ -11,7 +11,7 @@ Name:          nxshell
 BuildRequires: xorg-x11-devel
 Requires:      netcat NX bash perl
 Summary:       NX Tool to start single application via NX protocol
-Version:       1.3
+Version:       1.4
 Release:       2
 Group:         System/X11/Utilities
 License:       GPL
