@@ -198,25 +198,6 @@ while true;do
 done
 
 #=====================================
-# setup keyboard layout
-#-------------------------------------
-#if [ -z "$layout" ] || [ "$layout" = "us" ];then
-#	syskbd=/etc/sysconfig/keyboard
-#	layout=`cat $syskbd | grep ^KEYTABLE | cut -f2 -d= | tr -d \"`
-#	log "system keyboard is set to: $layout";
-#fi
-#if [ ! -z "$layout" ] && [ ! "$layout" = "us" ];then
-#	xkb="$cdir/nxshell/xkbctrl $layout"
-#	opt=`$xkb | grep Apply | cut -f2 -d: | tr -d \"`
-#	opt=`echo $opt`
-#	if [ ! -z "$opt" ];then
-#		log "setup keyboard layout: $layout"
-#		eval setxkbmap $opt
-#		eval setxkbmap $opt
-#	fi
-#fi
-
-#=====================================
 # run the application
 #-------------------------------------
 log "calling command: $command"
