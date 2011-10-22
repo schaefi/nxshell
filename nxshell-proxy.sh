@@ -305,28 +305,21 @@ cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 	"mkdir -p $cdir && cat >$arch && tar -xzf $arch -C $cdir"
 
 #=====================================
-# run nxagent, wait for cookie
+# transfer cookie...
 #-------------------------------------
 log "waiting for agent [ sync: $netcatPort ]..."
 nc="netcat -w 30 -l -p $netcatPort"
+ssh -f -x -i $cdir/session.key $debug -p $sshport \
+	$remote "echo "$COOKIE" | $nc;echo "$COOKIE" | $nc"
+
+#=====================================
+# run nxagent, wait for cookie
+#-------------------------------------
 log "open ssh connection to $remote [ port: $tunnelPort ]"
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
 	$remote $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
 	--command $command --nxdisplay $display --syncport $netcatPort \
 	--layout $layout
-
-#=====================================
-# transfer cookie...
-#-------------------------------------
-ssh -i $cdir/session.key $debug -p $sshport -f \
-	-L$netcatPort:localhost:$netcatPort \
-	$remote "echo "$COOKIE" | $nc;echo "$COOKIE" | $nc"
-ncpid=`ps ax | grep "\-p $sshport -f -L$netcatPort" | grep -v grep | cut -c1-7`
-ncpid=`echo $ncpid`
-if [ -z "$ncpid" ];then
-	log "FATAL: couldn't get ssh process ID... abort"
-	exit 1
-fi
 
 #=====================================
 # run the proxy.
