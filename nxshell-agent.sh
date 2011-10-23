@@ -146,20 +146,19 @@ NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,root=$HOME/.nxshell"
 #=====================================
 # add cookie
 #-------------------------------------
-count=0
 while true;do
+	if ! lsof -i :$netcatPort;then
+		sleep 1
+		continue
+	fi
 	COOKIE=$(netcat localhost $netcatPort)
 	if [ ! -z "$COOKIE" ];then
 		log "Adding cookie: $COOKIE"
 		addCookie
 		break
 	fi
-	count=$((count + 1))
-	if [ $count -eq 5 ];then
-		log "couldn't get a COOKIE... abort"
-		exit 1
-	fi
-	sleep 1
+	log "couldn't get a COOKIE... abort"
+	exit 1
 done
 
 #=====================================
