@@ -16,7 +16,7 @@
 #               :
 # STATUS        : BETA
 #----------------
-VERSION=1.2
+VERSION=1.4
 
 #=====================================
 # PROXY code: Functions
@@ -288,8 +288,8 @@ mkdir -p $cdir && createSessionKey $cdir $remoteHost $thisUser
 # Check NX versions local/remote
 #-------------------------------------
 rpmQC="rpm -q NX --qf %{VERSION}"
-locNX=`$rpmQC`
-remNX=`ssh -x -i $cdir/session.key $debug -p $sshport $remote $rpmQC`
+locNX=$($rpmQC)
+remNX=$(ssh -x -i $cdir/session.key $debug -p $sshport $remote $rpmQC)
 if [ ! "$locNX" = "$remNX" ];then
 	log "NX versions differ: local: $locNX remote: $remNX... abort"
 	exit 1
@@ -322,10 +322,16 @@ ssh -f -x -i $cdir/session.key $debug -p $sshport \
 	--layout $layout
 
 #=====================================
+# forward remote agent port via ssh
+#-------------------------------------
+ssh -f -x -i $cdir/session.key $debug -p $sshport \
+	-L $tunnelPort:$remoteHost:$tunnelPort $remote -N
+
+#=====================================
 # run the proxy.
 #-------------------------------------
 log "starting nxproxy..."
-nxproxy -S "$remoteHost:$display"
+nxproxy -S "localhost:$display"
 
 #=====================================
 # cleanup session key

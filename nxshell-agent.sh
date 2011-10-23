@@ -16,7 +16,7 @@
 #               :
 # STATUS        : BETA
 #----------------
-VERSION=1.2
+VERSION=1.4
 
 #=====================================
 # Signal trap
@@ -147,7 +147,7 @@ NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,root=$HOME/.nxshell"
 # add cookie
 #-------------------------------------
 while true;do
-	if ! lsof -i :$netcatPort;then
+	if ! lsof -i :$netcatPort &>/dev/null;then
 		sleep 1
 		continue
 	fi
