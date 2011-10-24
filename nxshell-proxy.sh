@@ -316,14 +316,24 @@ ssh -f -x -i $cdir/session.key $debug -p $sshport \
 # run nxagent, wait for cookie
 #-------------------------------------
 log "open ssh connection to $remote [ port: $tunnelPort ]"
+{
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
 	$remote $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
 	--command $command --nxdisplay $display --syncport $netcatPort \
 	--layout $layout
+}&
+
+#=====================================
+# wait for agent to settle
+#-------------------------------------
+log "waiting for agent to settle..."
+ssh -x -i $cdir/session.key $debug -p $sshport \
+	$remote "echo 'waiting for agent to settle' | $nc"
 
 #=====================================
 # forward remote agent port via ssh
 #-------------------------------------
+log "forwarding agent port $tunnelPort:$remoteHost:$tunnelPort..."
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
 	-L $tunnelPort:$remoteHost:$tunnelPort $remote -N
 

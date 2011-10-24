@@ -172,7 +172,7 @@ nxagent \
 &
 AGENT=$!
 while true;do
-	sleep 5
+	sleep 1
 	if ! kill -0 $AGENT &>/dev/null;then
 		log "couldn't start nxagent... abort"
 		exit 1
@@ -181,6 +181,18 @@ while true;do
 		log "starting nxagent: ready to accept connections"
 		break
 	fi
+done
+
+#=====================================
+# agent started, trigger the caller
+#-------------------------------------
+while true;do
+	if ! lsof -i :$netcatPort &>/dev/null;then
+		sleep 1
+		continue
+	fi
+	netcat localhost $netcatPort &>/dev/null
+	break
 done
 
 #=====================================
