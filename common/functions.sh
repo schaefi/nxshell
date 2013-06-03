@@ -79,7 +79,7 @@ function newDisplay {
 	incs=(2 3 5 7 11 13)
 	inc=${incs[$(expr $RANDOM % ${#incs[@]} || true)]}
 	while netcat -z localhost $(expr 6000 + $display) >/dev/null 2>&1 \
-		|| nc -z localhost $(expr 4000 + $display) >/dev/null 2>&1
+		|| netcat -z localhost $(expr 4000 + $display) >/dev/null 2>&1
 	do
 		let display+=$inc
 	done

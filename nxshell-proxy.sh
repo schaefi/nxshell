@@ -308,7 +308,7 @@ cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 # transfer cookie...
 #-------------------------------------
 log "waiting for agent [ sync: $netcatPort ]..."
-nc="netcat -w 30 -l -p $netcatPort"
+nc="netcat -w 30 -l localhost $netcatPort"
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
 	$remote "echo "$COOKIE" | $nc"
 
