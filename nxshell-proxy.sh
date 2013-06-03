@@ -308,9 +308,9 @@ cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 # transfer cookie...
 #-------------------------------------
 log "waiting for agent [ sync: $netcatPort ]..."
-nc="netcat -l localhost $netcatPort"
+nc="netcat -w 30 -l localhost $netcatPort"
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
-	$remote "echo "$COOKIE" | $nc" &
+	$remote "echo "$COOKIE" | $nc"
 
 #=====================================
 # run nxagent, wait for cookie
@@ -327,8 +327,10 @@ ssh -f -x -i $cdir/session.key $debug -p $sshport \
 # wait for agent to settle
 #-------------------------------------
 log "waiting for agent to settle..."
-ssh -x -i $cdir/session.key $debug -p $sshport \
-	$remote "echo 'waiting for agent to settle' | $nc"
+if ! ssh -x -i $cdir/session.key $debug -p $sshport \
+	$remote "echo 'waiting for agent to settle' | $nc";then
+	exit 1
+fi
 
 #=====================================
 # forward remote agent port via ssh

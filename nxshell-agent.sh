@@ -148,8 +148,7 @@ NX_HOST_PORT_PARAMS="$NX_HOST_PORT_PARAMS,root=$HOME/.nxshell"
 #-------------------------------------
 while true;do
 	if ! lsof -i :$netcatPort &>/dev/null;then
-		sleep 1
-		continue
+		sleep 1; continue
 	fi
 	COOKIE=$(netcat localhost $netcatPort)
 	if [ ! -z "$COOKIE" ];then
