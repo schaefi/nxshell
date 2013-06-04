@@ -272,10 +272,11 @@ initConnection
 # Init netcat and SSH ports
 #-------------------------------------
 if [ -z "$tunnelPort" ];then
-	tunnelPort=`expr 4000 + $display`
+	tunnelPort=$((4000 + $display))
 fi
 if [ -z "$netcatPort" ];then
-	netcatPort=`expr $tunnelPort + 1`
+	netcatPort=$((tunnelPort + 1000))
+	netcatPortRemote=$((netcatPort + 1000))
 fi
 
 #=====================================
@@ -307,37 +308,42 @@ cat $code | ssh -x -i $cdir/session.key $debug -p $sshport $remote \
 #=====================================
 # transfer cookie...
 #-------------------------------------
-log "waiting for agent [ sync: $netcatPort ]..."
-nc="netcat -w 30 -l localhost $netcatPort"
-ssh -f -x -i $cdir/session.key $debug -p $sshport \
-	$remote "echo "$COOKIE" | $nc"
+log "Transfering session cookie..."
+ssh -x -i $cdir/session.key $debug -p $sshport $remote \
+	"echo $COOKIE > $cdir/session.cookie"
+
+log "prepare for agent sync [ nxagent: $netcatPortRemote ]..."
+ssh -x -i $cdir/session.key $debug -p $sshport \
+	-R $netcatPort:127.0.0.1:$netcatPortRemote $remote \
+	"sleep 1; echo 'waiting' | netcat -l $netcatPortRemote" &
+nsync=$!
 
 #=====================================
 # run nxagent, wait for cookie
 #-------------------------------------
 log "open ssh connection to $remote [ port: $tunnelPort ]"
-{
-ssh -f -x -i $cdir/session.key $debug -p $sshport \
-	$remote $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
-	--command $command --nxdisplay $display --syncport $netcatPort \
-	--layout $layout
-}&
+ssh -f -n -x -i $cdir/session.key $debug -p $sshport $remote \
+	"sleep 1; $cdir/nxshell/nxshell-agent.sh --compression $compressionLevel \
+	--command $command --nxdisplay $display --syncport $netcatPortRemote \
+	--layout $layout"
 
 #=====================================
 # wait for agent to settle
 #-------------------------------------
 log "waiting for agent to settle..."
-if ! ssh -x -i $cdir/session.key $debug -p $sshport \
-	$remote "echo 'waiting for agent to settle' | $nc";then
-	exit 1
-fi
+while true;do
+	if kill -0 $nsync &>/dev/null;then
+		continue; sleep 1
+	fi
+	break
+done
 
 #=====================================
 # forward remote agent port via ssh
 #-------------------------------------
 log "forwarding agent port $tunnelPort:$remoteHost:$tunnelPort..."
 ssh -f -x -i $cdir/session.key $debug -p $sshport \
-	-L $tunnelPort:$remoteHost:$tunnelPort $remote -N
+	-N -L $tunnelPort:$remoteHost:$tunnelPort $remote
 
 #=====================================
 # run the proxy.
