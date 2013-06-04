@@ -11,7 +11,7 @@ Name:          nxshell
 BuildRequires: xorg-x11-devel
 Requires:      netcat NX bash perl
 Summary:       NX Tool to start single application via NX protocol
-Version:       1.4
+Version:       1.5
 Release:       2
 Group:         System/X11/Utilities
 License:       GPL
